@@ -14,7 +14,6 @@ exports.list_all_tweets = function(req, res) {
 
 
 
-
 exports.create_a_tweet = function(req, res) {
   var new_tweet = new Tweet(req.body);
   new_tweet.save(function(err, tweet) {

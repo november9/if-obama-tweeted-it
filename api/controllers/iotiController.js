@@ -7,17 +7,21 @@ var configure = require("../../config");
 
 var T = new Twit(configure);
 
-T.get(
-    "statuses/user_timeline",
-    { screen_name: "realDonaldTrump", count: 10 },
-    function(err, data, response) {
-        console.log('data', data)
-        return data.map(function(val) {
-            console.log("TWEET TWEET!:  ", val.text);
-            // return val.text;
-        });
-    }
-);
+exports.list_all_tweets = function(req, res) {
+    T.get(
+        "statuses/user_timeline",
+        { screen_name: "realDonaldTrump", count: 10 },
+        function(err, tweets, response) {
+            console.log('tweets', tweets)
+
+            res.json(tweets)
+            // return data.map(function(val) {
+            //     console.log("TWEET TWEET!:  ", val.text);
+            //     // return val.text;
+            // });
+        }
+    );
+}
 
 // var scrape_tweets_from_twitter = function() {
 //      T.get(
@@ -39,12 +43,12 @@ T.get(
 
 // scrape_tweets_from_twitter();
 
-exports.list_all_tweets = function(req, res) {
-    Tweet.find({}, function(err, tweet) {
-        if (err) res.send(err);
-        res.json(tweet);
-    });
-};
+// exports.list_all_tweets = function(req, res) {
+//     Tweet.find({}, function(err, tweet) {
+//         if (err) res.send(err);
+//         res.json(tweet);
+//     });
+// };
 
 exports.create_a_tweet = function(req, res) {
     var new_tweet = new Tweet(req.body);

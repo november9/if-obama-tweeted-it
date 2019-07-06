@@ -9,6 +9,7 @@
   "dependencies": {
     "express": "^4.17.1",
     "mongoose": "^5.6.3",
+<<<<<<< HEAD
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "twit": "^2.2.11"
@@ -35,5 +36,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+=======
+    "twit": "^2.2.11"
+>>>>>>> updated files
   }
 }

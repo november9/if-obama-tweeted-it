@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-=======
 configure.js
 
 # Logs
@@ -30,7 +27,6 @@ coverage
 
 # Bower dependency directory (https://bower.io/)
 bower_components
->>>>>>> updated files
 
 # dependencies
 /node_modules

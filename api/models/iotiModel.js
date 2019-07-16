@@ -1,17 +1,20 @@
-'use strict';
-var mongoose = require('mongoose');
+"use strict";
+var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 
-
-var TweetSchema = new Schema({
-  tweetText: {
-    type: String,
-    required: 'Kindly enter the name of the tweet'
-  },
-  Created_date: {
-    type: Date,
-    default: Date.now
-  },
+var TrumpTweetSchema = new Schema({
+    id_str: {
+        type: String
+    },
+    id: {
+        type: Number
+    },
+    text: {
+        type: String
+    },
+    created_at: {
+        type: Date
+    }
 });
 
-module.exports = mongoose.model('Tweets', TweetSchema);
+module.exports = mongoose.model("TrumpTweets", TrumpTweetSchema);

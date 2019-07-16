@@ -1,6 +1,7 @@
 "use strict";
 
 var Twit = require("twit");
+var moment = require('moment');
 
 var T = new Twit({
     consumer_key: process.env.CONSUMER_KEY,
@@ -16,18 +17,29 @@ function tweetTrump () {
 
     T.get(
         "statuses/user_timeline",
-        { screen_name: "realDonaldTrump", count: 10 },
+        { screen_name: "realDonaldTrump", count: 1 },
+        // { screen_name: "boorackobama", count: 1 },
         function(err, data, response) {
             // console.log('data', data)
             // lastTrumpTweet = data[9].id;
             return data.map(function(val) {
+                var trumpTweetCreatedAt = moment().valueOf(val.created_at);
+                // if (trumpTweetCreatedAt)
                 // console.log('lastTrumpTweet', lastTrumpTweet);
-                // console.log('val.id', val.id);
-                console.log('val.text', val.text);
+                console.log('val.created_at', val.created_at);
+                console.log('moment().valueOf(val.created_at)', moment().valueOf(val.created_at));
                 // if (lastTrumpTweet === val.id) {
                 //     return;
                 // } else {
-                //     //T.post('statuses/update', {status: val.text});
+                    return;
+                    T.post('statuses/update', {
+                        status: val.text,
+                        entities: {
+                            hashtags: [
+                                val.id
+                            ]
+                        }
+                    });
                 // }
             });
         }

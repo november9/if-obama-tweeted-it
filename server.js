@@ -1,13 +1,13 @@
 
 require('dotenv').config();
 
-var express = require('express'),
-  app = express(),
-  port = process.env.PORT || 8080,
-  mongoose = require('mongoose'),
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 8080;
+const mongoose = require('mongoose')
 //   Task = require('./api/models/iotiModel'), //created model loading here
-  Tweet = require('./api/models/iotiModel'), //created model loading here
-  bodyParser = require('body-parser');
+const Tweet = require('./api/models/iotiModel'); //created model loading here
+const bodyParser = require('body-parser');
 
 // mongoose instance connection url connection
 mongoose.Promise = global.Promise;

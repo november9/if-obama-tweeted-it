@@ -13,7 +13,7 @@ var TrumpTweetSchema = new Schema({
         type: String
     },
     created_at: {
-        type: Date
+        type: String
     }
 });
 

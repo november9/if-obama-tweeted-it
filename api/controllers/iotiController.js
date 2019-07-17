@@ -46,6 +46,7 @@ async function postAndStoreTweets (trumpTweet) {
 }
 
 function tweetTrump() {
+  return;
   var tweetsToSave = [{}];
 
   T.get(

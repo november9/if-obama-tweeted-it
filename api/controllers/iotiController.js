@@ -3,7 +3,8 @@
 var Twit = require("twit");
 var _ = require("lodash")
 var he = require('he');
-var moment = require('moment');
+
+var convertTwitterDate = require("../../utils/convertTwitterDate");
 
 var T = new Twit({
   consumer_key: process.env.CONSUMER_KEY,
@@ -15,18 +16,13 @@ var T = new Twit({
 });
 var lastTrumpTweet;
 
-function abbreviateTweet (tweetText) {
-  if (tweetText.length > 280) {
-    return tweetText;
-  }
-}
-
-function tweetTrump() {
+function deleteTweets() {
   T.get(
     "statuses/user_timeline",
     { screen_name: "boorackobama", count: 10, tweet_mode: "extended" },
     function(err, data, response) {
-      return;
+
+
       console.log("data", data);
       // lastTrumpTweet = data[9].id;
       return data.map(async function(val) {
@@ -49,50 +45,49 @@ function tweetTrump() {
       });
     }
   );
+}
 
+function checkForDupe (trumpTweetText) {
+  T.get(
+    "statuses/user_timeline",
+    { screen_name: "boorackobama", count: 1, tweet_mode: "extended" },
+    function (err, boorakTweets, data) {
+      console.log('LAST BOORAK TWEET', boorakTweets[0].full_text);
+      console.log('LAST TRUMP TWEET', trumpTweetText);
+    }
+  );
+}
+
+function tweetTrump() {
   T.get(
     "statuses/user_timeline",
     { screen_name: "realDonaldTrump", count: 10, tweet_mode: "extended" },
     async function(err, data, response) {
-      // return;
-      // console.log("data", data);
-      // lastTrumpTweet = data[9].id;
       var trumpTweetArray = await data.map(function(val) {
-        console.log('val.created_at', val.created_at);
-        var reformattedDate = new Date(Date.parse(val.created_at.replace(/( \+)/, ' UTC$1')));
-        var reformattedDate = reformattedDate.getMilliseconds();
-
-        console.log('reformattedDate', reformattedDate);
-        // var dateStrArray = val.created_at.split(' ');
-        // var yearVal = dateStrArray[dateStrArray.length - 1];
-        // var monthVal = dateStrArray[1].toLowerCase;
-        // var dayVal = dateStrArray[3];
-        // var dayName = reformattedDate.toString().split('T')[0].split(' ')[0].toLowerCase();
-        ;
-        // var dateArray = val.created_at.split(' ');
-        // var day = moment().day(val.created_at);
-        // val.created_at_ms = moment(val.created_ad).valueOf();
-        // console.log('val.created_at_ms', val.created_at_ms);
+        val.created_at_ms = convertTwitterDate(val.created_at);
         return val;
       });
-return;
       if (trumpTweetArray) {
-        var sortedTrumpTweets = _.sortBy(trumpTweetArray, ['created_at_ms']);
-        console.log('sortedTrumpTweets', sortedTrumpTweets);
-        sortedTrumpTweets.forEach(function (sortedTweet) {
+        var sortedTrumpTweets = _.orderBy(trumpTweetArray, ['created_at_ms'],['desc']);
+        sortedTrumpTweets.forEach(async function (sortedTweet) {
+          var decodedSortedTweet = he.decode(sortedTweet.full_text);
           delete sortedTweet.created_at_ms;
-          T.post('statuses/update', {
-            status: _.truncate(he.decode(sortedTweet.full_text), {
-              'length': 280,
-              'omission': ' [...]'
-            }),
-          })
-          .then(function () {
-            console.log('TWEET WAS POSTED!');
-          })
-          .catch(function () {
-            console.log('TWEET FAILED TO POST!');
-          });
+          var isDupe = await checkForDupe(decodedSortedTweet);
+          if (!isDupe) {
+            // stuff
+          }
+          // T.post('statuses/update', {
+          //   status: _.truncate(he.decode(decodedSortedTweet), {
+          //     'length': 280,
+          //     'omission': ' [...]'
+          //   }),
+          // })
+          // .then(function () {
+          //   console.log('TWEET WAS POSTED!');
+          // })
+          // .catch(function () {
+          //   console.log('TWEET FAILED TO POST!');
+          // });
         });
       } else {
         console.log('FAILED TO GET TRUMP TWEETS!');
@@ -102,4 +97,11 @@ return;
   );
 }
 
+function postTrumpTweets () {
+  setInterval(function () {
+    tweetTrump();
+  }, 3000000);
+}
+// exports.tweet_trump_as_obama = deleteTweets;
+// exports.tweet_trump_as_obama = postTrumpTweets;
 exports.tweet_trump_as_obama = tweetTrump;

@@ -5,6 +5,7 @@ var _ = require("lodash")
 var he = require('he');
 
 var convertTwitterDate = require("../../utils/convertTwitterDate");
+var generateComparisonString = require("../../utils/generateComparisonString");
 
 var T = new Twit({
   consumer_key: process.env.CONSUMER_KEY,
@@ -48,14 +49,15 @@ function deleteTweets() {
 }
 
 function checkForDupe (trumpTweetText) {
-  T.get(
+  return T.get(
     "statuses/user_timeline",
     { screen_name: "boorackobama", count: 1, tweet_mode: "extended" },
-    function (err, boorakTweets, data) {
-      console.log('LAST BOORAK TWEET', boorakTweets[0].full_text);
-      console.log('LAST TRUMP TWEET', trumpTweetText);
-    }
-  );
+    function (err, lastBoorakTweet) {
+      console.log('generateComparisonString(trumpTweetText)', generateComparisonString(trumpTweetText));
+      console.log('generateComparisonString(lastBoorakTweet[0].full_text)', generateComparisonString(lastBoorakTweet[0].full_text));
+
+      return generateComparisonString(trumpTweetText) === generateComparisonString(lastBoorakTweet[0].full_text)
+    });
 }
 
 function tweetTrump() {
@@ -73,6 +75,7 @@ function tweetTrump() {
           var decodedSortedTweet = he.decode(sortedTweet.full_text);
           delete sortedTweet.created_at_ms;
           var isDupe = await checkForDupe(decodedSortedTweet);
+          console.log('isDupe', isDupe);
           if (!isDupe) {
             // stuff
           }

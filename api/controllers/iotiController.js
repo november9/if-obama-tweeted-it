@@ -1,8 +1,9 @@
 "use strict";
 
 var Twit = require("twit");
-var truncate = require("lodash").truncate
+var _ = require("lodash")
 var he = require('he');
+var moment = require('moment');
 
 var T = new Twit({
   consumer_key: process.env.CONSUMER_KEY,
@@ -52,41 +53,51 @@ function tweetTrump() {
   T.get(
     "statuses/user_timeline",
     { screen_name: "realDonaldTrump", count: 10, tweet_mode: "extended" },
-    function(err, data, response) {
+    async function(err, data, response) {
       // return;
       // console.log("data", data);
       // lastTrumpTweet = data[9].id;
-      return data.map(async function(val) {
-        // console.log('val.full_text', val.full_text);
-        // console.log('val.id', val.id);
-        // console.log('val.text', val.text);
-        const tweetData = await val;
-        if (tweetData) {
+      var trumpTweetArray = await data.map(function(val) {
+        console.log('val.created_at', val.created_at);
+        var reformattedDate = new Date(Date.parse(val.created_at.replace(/( \+)/, ' UTC$1')));
+        var reformattedDate = reformattedDate.getMilliseconds();
 
-          console.log('LENGTH:', tweetData.full_text.length);
-          console.log('ID:', tweetData.id_str);
+        console.log('reformattedDate', reformattedDate);
+        // var dateStrArray = val.created_at.split(' ');
+        // var yearVal = dateStrArray[dateStrArray.length - 1];
+        // var monthVal = dateStrArray[1].toLowerCase;
+        // var dayVal = dateStrArray[3];
+        // var dayName = reformattedDate.toString().split('T')[0].split(' ')[0].toLowerCase();
+        ;
+        // var dateArray = val.created_at.split(' ');
+        // var day = moment().day(val.created_at);
+        // val.created_at_ms = moment(val.created_ad).valueOf();
+        // console.log('val.created_at_ms', val.created_at_ms);
+        return val;
+      });
+return;
+      if (trumpTweetArray) {
+        var sortedTrumpTweets = _.sortBy(trumpTweetArray, ['created_at_ms']);
+        console.log('sortedTrumpTweets', sortedTrumpTweets);
+        sortedTrumpTweets.forEach(function (sortedTweet) {
+          delete sortedTweet.created_at_ms;
           T.post('statuses/update', {
-            status: truncate(he.decode(val.full_text), {
+            status: _.truncate(he.decode(sortedTweet.full_text), {
               'length': 280,
               'omission': ' [...]'
             }),
           })
-          .then(function (res) {
-            console.log('SUCCESS!');
+          .then(function () {
+            console.log('TWEET WAS POSTED!');
           })
-          .catch(function(err) {
-            console.log('ERROR YO', err);
+          .catch(function () {
+            console.log('TWEET FAILED TO POST!');
           });
+        });
+      } else {
+        console.log('FAILED TO GET TRUMP TWEETS!');
+      }
 
-        } else {
-          console.log("something went wrong!");
-        }
-        // if (lastTrumpTweet === val.id) {
-        //     return;
-        // } else {
-        //     //T.post('statuses/update', {status: val.text});
-        // }
-      });
     }
   );
 }

@@ -48,54 +48,64 @@ function deleteTweets() {
   );
 }
 
-function tweetTrump() {
-  T.get(
-    "statuses/user_timeline",
-    { screen_name: "realDonaldTrump", count: 2, tweet_mode: "extended" },
-    function(err, data, response) {
-      var trumpTweetArray = data.map(function(val) {
-        val.created_at_ms = convertTwitterDate(val.created_at);
-        return val;
-      });
+function getTweets (screenName, numTweets) {
+  return T.get("statuses/user_timeline",
+    { screen_name: screenName, count: numTweets, tweet_mode: "extended" })
+    .catch(function(err) {
+      console.log('ERROR TIME', err)
+    })
+    .then(function (result) {
+      return result;
+    });
+}
 
-      console.log('trumpTweetArray', trumpTweetArray[0].full_text);
-      if (trumpTweetArray) {
-        var sortedTrumpTweets = _.orderBy(trumpTweetArray, ['created_at_ms'],['desc']);
-        sortedTrumpTweets.forEach(function (sortedTweet) {
-          var decodedSortedTweet = he.decode(sortedTweet.full_text);
-          delete sortedTweet.created_at_ms;
-          T.get(
-            "statuses/user_timeline",
-            { screen_name: "boorackobama", count: 1, tweet_mode: "extended" },
-            async function(err, boorackTweets, response) {
-              console.log('boorackTweets[0].full_text', boorackTweets[0].full_text);
-              var latestBoorackTweet = await boorackTweets[0].full_text;
-              if (
-                generateComparisonString(sortedTweet.full_text)
-                !== generateComparisonString(latestBoorackTweet)
-              ) {
-                console.log('POSTING!');
-                T.post('statuses/update', {
-                  status: _.truncate(he.decode(decodedSortedTweet), {
-                    'length': 280,
-                    'omission': ' [...]'
-                  }),
-                })
-                .then(function () {
-                  console.log('TWEET WAS POSTED!');
-                })
-                .catch(function () {
-                  console.log('TWEET FAILED TO POST!');
-                });
-              }
-            });
+function getFullText (tweetObject) {
+
+  if (_.has(tweetObject, 'retweeted_status.full_text')) {
+    return tweetObject.retweeted_status.full_text;
+  }
+
+  return tweetObject.full_text;
+}
+
+
+function tweetTrump() {
+  var trumpTweets = getTweets('realDonaldTrump', 2);
+  var latestBoorakTweet = getTweets('boorackobama', 1);
+
+  Promise.all([trumpTweets, latestBoorakTweet]).then(function (val) {
+    var trumpTweetsData = val[0].data;
+    var latestBoorakTweetData = val[1].data[0];
+
+var trumpTweetsWithConvertedDate = trumpTweetsData.map(function(val) {
+      val.created_at_ms = convertTwitterDate(val.created_at);
+      return val;
+    });
+
+    var sortedTrumpTweets = _.orderBy(trumpTweetsWithConvertedDate, ['created_at_ms'], ['asc']);
+    sortedTrumpTweets.forEach(function (sortedTweet) {
+      var decodedSortedTweet = he.decode(getFullText(sortedTweet));
+      delete sortedTweet.created_at_ms;
+console.log('latestBoorakTweetData', latestBoorakTweetData);
+      if (!latestBoorakTweetData ||
+        (generateComparisonString(sortedTweet.full_text)
+        !== generateComparisonString(latestBoorakTweetData.full_text))) {
+        console.log('POSTING!');
+        T.post('statuses/update', {
+          status: _.truncate(he.decode(decodedSortedTweet), {
+            'length': 280,
+            'omission': ' [...]'
+          }),
+        })
+        .then(function () {
+          console.log('TWEET WAS POSTED!');
+        })
+        .catch(function () {
+          console.log('TWEET FAILED TO POST!');
         });
-      } else {
-        console.log('FAILED TO GET TRUMP TWEETS!');
       }
     });
-    }
-  );
+  });
 }
 
 function postTrumpTweetsOnInterval () {

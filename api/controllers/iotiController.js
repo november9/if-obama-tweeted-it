@@ -20,7 +20,7 @@ var lastTrumpTweet;
 function deleteTweets() {
   T.get(
     "statuses/user_timeline",
-    { screen_name: "boorackobama", count: 50, tweet_mode: "extended" },
+    { screen_name: "boorackobama", count: 80, tweet_mode: "extended" },
     function(err, data, response) {
 
 
@@ -70,7 +70,7 @@ function getFullText (tweetObject) {
 
 function tweetTrump() {
   console.log('starting tweetTrump...');
-  var trumpTweets = getTweets('realDonaldTrump', 3);
+  var trumpTweets = getTweets('realDonaldTrump', 80);
   var latestBoorakTweet = getTweets('boorackobama', 1);
 
   Promise.all([trumpTweets, latestBoorakTweet]).then(function (val) {
@@ -86,14 +86,20 @@ function tweetTrump() {
     sortedTrumpTweets.forEach(function (sortedTrumpTweet) {
       var decodedSortedTweet = he.decode(getFullText(sortedTrumpTweet));
       delete sortedTrumpTweet.created_at_ms;
-      console.log('TRUMP', generateComparisonString(decodedSortedTweet));
-      console.log('BOORAK', generateComparisonString(latestBoorakTweetData.full_text));
-      if (!latestBoorakTweetData ||
-        (generateComparisonString(sortedTrumpTweet.full_text)
-        !== generateComparisonString(latestBoorakTweetData.full_text))) {
-        console.log('ATTEMPTING TWEET...');
+      if (
+        !latestBoorakTweetData
+        ||
+        (
+          latestBoorakTweetData.full_text
+          &&
+          (
+            generateComparisonString(sortedTrumpTweet.full_text) !== generateComparisonString(latestBoorakTweetData.full_text)
+          )
+        )
+      ) {
+          console.log('ATTEMPTING TWEET...');
         T.post('statuses/update', {
-          status: _.truncate(he.decode(decodedSortedTweet), {
+          status: _.truncate(decodedSortedTweet, {
             'length': 280,
             'omission': ' [...]'
           }),
@@ -101,8 +107,8 @@ function tweetTrump() {
         .then(function () {
           console.log('TWEET WAS POSTED!');
         })
-        .catch(function () {
-          console.log('TWEET FAILED TO POST!');
+        .catch(function (err) {
+          console.log('TWEET FAILED TO POST!', err);
         });
       }
     });

@@ -70,7 +70,7 @@ function getFullText (tweetObject) {
 
 function tweetTrump() {
   console.log('starting tweetTrump...');
-  var trumpTweets = getTweets('realDonaldTrump', 80);
+  var trumpTweets = getTweets('realDonaldTrump', 3);
   var latestBoorakTweet = getTweets('boorackobama', 1);
 
   Promise.all([trumpTweets, latestBoorakTweet]).then(function (val) {

@@ -61,7 +61,7 @@ function getTweets (screenName, numTweets) {
 
 function getFullText (tweetObject) {
   if (_.has(tweetObject, 'retweeted_status.full_text')) {
-    return tweetObject.retweeted_status.full_text;
+    return `RT: ${tweetObject.retweeted_status.user.name}: ${tweetObject.retweeted_status.full_text}`;
   }
 
   return tweetObject.full_text;
@@ -69,7 +69,7 @@ function getFullText (tweetObject) {
 
 
 function tweetTrump() {
-  console.log('checking for new tweet...');
+  console.log('starting tweetTrump...');
   var trumpTweets = getTweets('realDonaldTrump', 3);
   var latestBoorakTweet = getTweets('boorackobama', 1);
 
@@ -91,7 +91,7 @@ function tweetTrump() {
       if (!latestBoorakTweetData ||
         (generateComparisonString(sortedTrumpTweet.full_text)
         !== generateComparisonString(latestBoorakTweetData.full_text))) {
-        console.log('POSTING!');
+        console.log('ATTEMPTING TWEET...');
         T.post('statuses/update', {
           status: _.truncate(he.decode(decodedSortedTweet), {
             'length': 280,

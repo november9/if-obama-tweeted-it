@@ -3,7 +3,7 @@ require('dotenv').config();
 
 var express = require('express'),
   app = express(),
-  port = process.env.PORT || 8080,
+  port = process.env.PORT || 3000,
   mongoose = require('mongoose'),
   // Tweet = require('./api/models/iotiModel'), //created model loading here
   bodyParser = require('body-parser');
@@ -24,4 +24,4 @@ routes(app); //register the route
 
 app.listen(port);
 
-console.log('todo list RESTful API server started on: ' + port);
+console.log('If Obama Did It RESTful API server started on: ' + port);

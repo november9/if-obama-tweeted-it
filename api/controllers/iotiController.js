@@ -20,7 +20,7 @@ var lastTrumpTweet;
 function deleteTweets() {
   T.get(
     "statuses/user_timeline",
-    { screen_name: "boorackobama", count: 10, tweet_mode: "extended" },
+    { screen_name: "boorackobama", count: 50, tweet_mode: "extended" },
     function(err, data, response) {
 
 
@@ -60,7 +60,6 @@ function getTweets (screenName, numTweets) {
 }
 
 function getFullText (tweetObject) {
-
   if (_.has(tweetObject, 'retweeted_status.full_text')) {
     return tweetObject.retweeted_status.full_text;
   }
@@ -70,25 +69,26 @@ function getFullText (tweetObject) {
 
 
 function tweetTrump() {
-  var trumpTweets = getTweets('realDonaldTrump', 2);
+  console.log('checking for new tweet...');
+  var trumpTweets = getTweets('realDonaldTrump', 3);
   var latestBoorakTweet = getTweets('boorackobama', 1);
 
   Promise.all([trumpTweets, latestBoorakTweet]).then(function (val) {
     var trumpTweetsData = val[0].data;
     var latestBoorakTweetData = val[1].data[0];
 
-var trumpTweetsWithConvertedDate = trumpTweetsData.map(function(val) {
+    var trumpTweetsWithConvertedDate = trumpTweetsData.map(function(val) {
       val.created_at_ms = convertTwitterDate(val.created_at);
       return val;
     });
 
     var sortedTrumpTweets = _.orderBy(trumpTweetsWithConvertedDate, ['created_at_ms'], ['asc']);
-    sortedTrumpTweets.forEach(function (sortedTweet) {
-      var decodedSortedTweet = he.decode(getFullText(sortedTweet));
-      delete sortedTweet.created_at_ms;
-console.log('latestBoorakTweetData', latestBoorakTweetData);
+    sortedTrumpTweets.forEach(function (sortedTrumpTweet) {
+      var decodedSortedTweet = he.decode(getFullText(sortedTrumpTweet));
+      delete sortedTrumpTweet.created_at_ms;
+
       if (!latestBoorakTweetData ||
-        (generateComparisonString(sortedTweet.full_text)
+        (generateComparisonString(sortedTrumpTweet.full_text)
         !== generateComparisonString(latestBoorakTweetData.full_text))) {
         console.log('POSTING!');
         T.post('statuses/update', {
@@ -111,8 +111,8 @@ console.log('latestBoorakTweetData', latestBoorakTweetData);
 function postTrumpTweetsOnInterval () {
   setInterval(function () {
     tweetTrump();
-  }, 3000000);
+  }, 120000);
 }
 // exports.tweet_trump_as_obama = deleteTweets;
-// exports.tweet_trump_as_obama = postTrumpTweetsOnInterval;
-exports.tweet_trump_as_obama = tweetTrump;
+exports.tweet_trump_as_obama = postTrumpTweetsOnInterval;
+// exports.tweet_trump_as_obama = tweetTrump;

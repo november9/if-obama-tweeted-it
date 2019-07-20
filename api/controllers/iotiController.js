@@ -86,7 +86,8 @@ function tweetTrump() {
     sortedTrumpTweets.forEach(function (sortedTrumpTweet) {
       var decodedSortedTweet = he.decode(getFullText(sortedTrumpTweet));
       delete sortedTrumpTweet.created_at_ms;
-
+      console.log('TRUMP', generateComparisonString(decodedSortedTweet));
+      console.log('BOORAK', generateComparisonString(latestBoorakTweetData.full_text));
       if (!latestBoorakTweetData ||
         (generateComparisonString(sortedTrumpTweet.full_text)
         !== generateComparisonString(latestBoorakTweetData.full_text))) {

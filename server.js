@@ -24,4 +24,4 @@ routes(app); //register the route
 
 app.listen(port);
 
-console.log('If Obama Did It RESTful API server started on: ' + port);
+console.log('If Obama Tweeted It RESTful API server started on: ' + port);

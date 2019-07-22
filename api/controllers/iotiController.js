@@ -15,37 +15,16 @@ var T = new Twit({
   timeout_ms: 60 * 1000, // optional HTTP request timeout to apply to all requests.
   strictSSL: false // optional - requires SSL certificates to be valid.
 });
-var lastTrumpTweet;
+var recentTrumpTweets = [];
 
-function deleteTweets() {
-  T.get(
-    "statuses/user_timeline",
-    { screen_name: "boorackobama", count: 80, tweet_mode: "extended" },
-    function(err, data, response) {
+function temporarilyStoreTrumpTweetIds (tweetId) {
+  if (recentTrumpTweets.length > 20) {
+    recentTrumpTweets = [];
+  }
 
-
-      console.log("data", data);
-      // lastTrumpTweet = data[9].id;
-      return data.map(async function(val) {
-        // console.log('lastTrumpTweet', lastTrumpTweet);
-        console.log("val.id", val.id);
-        // console.log('val.text', val.text);
-        const tweetData = await val;
-        if (tweetData) {
-          // T.post('statuses/update', {status: val.full_text});
-          T.post("statuses/destroy/:id", { id: val.id_str }, function(
-            err,
-            data,
-            response
-          ) {
-            console.log(data);
-          });
-        } else {
-          console.log("something went wrong!");
-        }
-      });
-    }
-  );
+  if (recentTrumpTweets.indexOf(tweetId) === -1) {
+    recentTrumpTweets.push(tweetId);
+  }
 }
 
 function getTweets (screenName, numTweets) {
@@ -67,10 +46,8 @@ function getFullText (tweetObject) {
   return tweetObject.full_text;
 }
 
-
 function tweetTrump() {
-  console.log('starting tweetTrump...');
-  var trumpTweets = getTweets('realDonaldTrump', 3);
+  var trumpTweets = getTweets('realDonaldTrump', 1);
   var latestBoorakTweet = getTweets('boorackobama', 1);
 
   Promise.all([trumpTweets, latestBoorakTweet]).then(function (val) {
@@ -82,29 +59,35 @@ function tweetTrump() {
       return val;
     });
 
-    var sortedTrumpTweets = _.orderBy(trumpTweetsWithConvertedDate, ['created_at_ms'], ['asc']);
+    var sortedTrumpTweets = _.orderBy(trumpTweetsWithConvertedDate, ['created_at_ms'], ['desc']);
     sortedTrumpTweets.forEach(function (sortedTrumpTweet) {
       var decodedSortedTweet = he.decode(getFullText(sortedTrumpTweet));
       delete sortedTrumpTweet.created_at_ms;
+
       if (
         !latestBoorakTweetData
+        ||
+        (recentTrumpTweets.indexOf(sortedTrumpTweet.id_str) === -1)
         ||
         (
           latestBoorakTweetData.full_text
           &&
+          // check to see if text from most recent Trump tweet matches latest boorak tweet
           (
-            generateComparisonString(sortedTrumpTweet.full_text) !== generateComparisonString(latestBoorakTweetData.full_text)
+            generateComparisonString(decodedSortedTweet) !== generateComparisonString(latestBoorakTweetData.full_text)
           )
         )
       ) {
-          console.log('ATTEMPTING TWEET...');
+        console.log('ATTEMPTING TWEET...');
         T.post('statuses/update', {
           status: _.truncate(decodedSortedTweet, {
             'length': 280,
             'omission': ' [...]'
           }),
         })
-        .then(function () {
+        .then(function (postedTweet) {
+          // make a temporary record that this tweet was already posted
+          temporarilyStoreTrumpTweetIds(postedTweet.id_str);
           console.log('TWEET WAS POSTED!');
         })
         .catch(function (err) {
@@ -120,6 +103,5 @@ function postTrumpTweetsOnInterval () {
     tweetTrump();
   }, 120000);
 }
-// exports.tweet_trump_as_obama = deleteTweets;
 exports.tweet_trump_as_obama = postTrumpTweetsOnInterval;
 // exports.tweet_trump_as_obama = tweetTrump;
